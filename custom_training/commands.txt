@@ -1,0 +1,16 @@
+python lerobot/scripts/train.py \
+--dataset.repo_id=yqiu777/aloha_mobile_left_dom \
+--dataset.local_files_only=true \
+--policy.type=act \
+--policy.n_action_steps=1 \
+--policy.n_decoder_layers=7 \
+--policy.temporal_ensemble_coeff=0.01 \
+--policy.optimizer_lr=5e-05 \
+--job_name="aloha_mobile_left_dom" \
+--device="cuda" \
+--seed=1000 \
+--num_workers=8 \
+--batch_size=16 \
+--steps=8000 \
+--eval_freq=10000 \
+--save_freq=2000 \
