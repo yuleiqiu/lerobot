@@ -65,7 +65,7 @@ from termcolor import colored
 from torch import Tensor, nn
 from tqdm import trange
 
-from lerobot.common.envs.factory import make_env
+from lerobot.common.datasets.factory import make_dataset
 from lerobot.common.envs.utils import preprocess_observation
 from lerobot.common.policies.factory import make_policy
 from lerobot.common.policies.pretrained import PreTrainedPolicy
@@ -78,6 +78,7 @@ from lerobot.common.utils.utils import (
     inside_slurm,
 )
 from lerobot.configs import parser
+from lerobot.configs.train import TrainPipelineConfig
 from lerobot.configs.eval import EvalPipelineConfig
 
 
@@ -295,7 +296,8 @@ def eval_policy(
 
 
 @parser.wrap()
-def eval(cfg: EvalPipelineConfig):
+# def eval(cfg: EvalPipelineConfig):
+def eval(cfg: TrainPipelineConfig):
     logging.info(pformat(asdict(cfg)))
 
     # Check device is available
@@ -326,11 +328,14 @@ def eval(cfg: EvalPipelineConfig):
     except InterbotixException:
         pass
 
+    logging.info("Creating dataset")
+    dataset = make_dataset(cfg)
+
     logging.info("Making policy.")
     policy = make_policy(
         cfg=cfg.policy,
         device=device,
-        env_cfg=cfg.env,
+        ds_meta=dataset.meta,
     )
     policy.eval()
 
