@@ -70,9 +70,16 @@ def preprocess_observation(observations: dict[str, np.ndarray]) -> dict[str, Ten
 def preprocess_observation_from_real_aloha(observations: dict[str, np.ndarray]) -> dict[str, Tensor]:
     """Convert environment observation to LeRobot format observation.
     Args:
-        observation: Dictionary of observation batches from a Gym vector environment.
+        observation: Dictionary of observation aloha.RealEbv environment.
     Returns:
-        Dictionary of observation batches with keys renamed to LeRobot format and values as tensors.
+        Dictionary of observation with keys renamed to LeRobot format and values as tensors.
+        Format:
+            {
+                "observation.images.cam_high": ...,
+                "observation.images.cam_left_wrist": ...,
+                "observation.images.cam_right_wrist": ...,
+                "observation.state": ...
+            }
     """
     # map to expected inputs for the policy
     return_observations = {}

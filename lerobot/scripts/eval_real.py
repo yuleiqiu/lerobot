@@ -56,6 +56,7 @@ from dataclasses import asdict
 from pathlib import Path
 from pprint import pformat
 from typing import Callable
+import matplotlib.pyplot as plt
 
 import einops
 import gymnasium as gym
@@ -66,11 +67,10 @@ from torch import Tensor, nn
 from tqdm import trange
 
 from lerobot.common.datasets.factory import make_dataset
-from lerobot.common.envs.utils import preprocess_observation
+from lerobot.common.envs.utils import preprocess_observation_from_real_aloha
 from lerobot.common.policies.factory import make_policy
 from lerobot.common.policies.pretrained import PreTrainedPolicy
 from lerobot.common.policies.utils import get_device_from_parameters
-from lerobot.common.utils.io_utils import write_video
 from lerobot.common.utils.random_utils import set_seed
 from lerobot.common.utils.utils import (
     get_safe_torch_device,
@@ -85,6 +85,7 @@ from lerobot.configs.eval import EvalPipelineConfig
 def rollout(
     env: RealEnv,
     policy: PreTrainedPolicy,
+    figures_dir: Path | None = None,
 ) -> dict:
     """Run a batched policy rollout once through a batch of environments.
 
@@ -122,9 +123,12 @@ def rollout(
 
     # all_states = []
     # all_images = []
-    # all_actions = []
+    all_actions = []
     all_rewards = []
     # all_successes = []
+
+    qpos_list = []
+    target_qpos_list = []
 
     max_timesteps = int(max_timesteps * 2) # may increase for real-world tasks
 
@@ -136,7 +140,7 @@ def rollout(
             time1 = time.time()
 
             observation = ts.observation
-            observation = preprocess_observation(observation)
+            observation = preprocess_observation_from_real_aloha(observation)
             observation = {key: observation[key].to(device, non_blocking=True) for key in observation}
 
             if t == 0:
@@ -162,7 +166,7 @@ def rollout(
 
             ### for visualization
             # qpos_list.append(qpos_numpy)
-            # target_qpos_list.append(target_qpos)
+            all_actions.append(target_qpos)
             all_rewards.append(ts.reward)
             duration = time.time() - time1
             sleep_time = max(0, DT - duration)
@@ -182,6 +186,19 @@ def rollout(
         moving_time=0.5,
     )  # open
 
+    if figures_dir:
+        all_actions = np.array(all_actions)
+        plt.figure(figsize=(10, 20))
+        for i in range(action.shape[0]):
+            plt.subplot(action.shape[0], 1, i+1)
+            plt.plot(all_actions[:, i])
+            # remove x axis
+            if i != action.shape[0] - 1:
+                plt.xticks([])
+            plt.tight_layout()
+            plt.savefig(os.path.join(ckpt_dir, f'predicted_{log_id}.png'))
+            plt.close()
+
     if hasattr(policy, "use_original_modules"):
         policy.use_original_modules()
 
@@ -192,8 +209,8 @@ def eval_policy(
     env: RealEnv,
     policy: PreTrainedPolicy,
     num_rollouts: int,
+    figures_dir: Path,
     return_episode_data: bool = False,
-    start_seed: int | None = None,
 ) -> dict:
     """
     Args:
@@ -232,6 +249,7 @@ def eval_policy(
         rollout(
             env,
             policy,
+            figures_dir = figures_dir,
             # return_observations=return_episode_data,
         )
 
@@ -345,6 +363,7 @@ def eval(cfg: TrainPipelineConfig):
             env,
             policy,
             cfg.eval.n_episodes,
+            figures_dir=Path(cfg.output_dir) / "videos"
         )
     # print(info["aggregated"])
 
