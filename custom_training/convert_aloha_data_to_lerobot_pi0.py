@@ -41,13 +41,6 @@ def create_empty_dataset(
     dataset_config: DatasetConfig = DEFAULT_DATASET_CONFIG,
 ) -> LeRobotDataset:
     motors = [
-        "right_waist",
-        "right_shoulder",
-        "right_elbow",
-        "right_forearm_roll",
-        "right_wrist_angle",
-        "right_wrist_rotate",
-        "right_gripper",
         "left_waist",
         "left_shoulder",
         "left_elbow",
@@ -55,6 +48,13 @@ def create_empty_dataset(
         "left_wrist_angle",
         "left_wrist_rotate",
         "left_gripper",
+        "right_waist",
+        "right_shoulder",
+        "right_elbow",
+        "right_forearm_roll",
+        "right_wrist_angle",
+        "right_wrist_rotate",
+        "right_gripper",
     ]
     cameras = [
         "cam_high",
@@ -98,6 +98,7 @@ def create_empty_dataset(
             ],
         }
 
+    ## TODO： image size is 848 x 480 instead of 640 x 480 due to hardware issues
     for cam in cameras:
         features[f"observation.images.{cam}"] = {
             "dtype": mode,
@@ -139,6 +140,12 @@ def has_velocity(hdf5_files: list[Path]) -> bool:
 def has_effort(hdf5_files: list[Path]) -> bool:
     with h5py.File(hdf5_files[0], "r") as ep:
         return "/observations/effort" in ep
+    
+def crop_image(image: np.ndarray, desired_width: int = 640) -> np.ndarray:
+    _, w, _ = image.shape # h, w, c
+    margin = (w - desired_width) // 2
+    cropped_image = image[:, margin:margin+desired_width]
+    return cropped_image
 
 
 def load_raw_images_per_camera(ep: h5py.File, cameras: list[str]) -> dict[str, np.ndarray]:
@@ -151,14 +158,16 @@ def load_raw_images_per_camera(ep: h5py.File, cameras: list[str]) -> dict[str, n
             imgs_array = ep[f"/observations/images/{camera}"][:]
         else:
             import cv2
-
             # load one compressed image after the other in RAM and uncompress
             imgs_array = []
             for data in ep[f"/observations/images/{camera}"]:
-                imgs_array.append(cv2.imdecode(data, 1))
+                img = cv2.imdecode(data, 1)
+                cropped_img = crop_image(img)
+                imgs_array.append(cropped_img)
             imgs_array = np.array(imgs_array)
 
         imgs_per_cam[camera] = imgs_array
+
     return imgs_per_cam
 
 

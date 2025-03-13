@@ -16,7 +16,7 @@ from lerobot.common.policies.act.modeling_act import ACTPolicy
 from lerobot.configs.types import FeatureType
 
 
-import pdb
+import pdb, pprint
 
 
 def main():
@@ -36,10 +36,12 @@ def main():
     # creating the policy:
     #   - input/output shapes: to properly size the policy
     #   - dataset stats: for normalization and denormalization of input/outputs
-    dataset_metadata = LeRobotDatasetMetadata("yqiu777/aloha_mobile_left_dom", local_files_only=True)
+    dataset_metadata = LeRobotDatasetMetadata("yqiu777/aloha_mobile_right_single_rigid")
     features = dataset_to_policy_features(dataset_metadata.features)
     output_features = {key: ft for key, ft in features.items() if ft.type is FeatureType.ACTION}
     input_features = {key: ft for key, ft in features.items() if key not in output_features}
+    pprint.pp(output_features)
+    pprint.pp(input_features)
 
     # Policies are initialized with a configuration class. For this example,
     # we'll just use the defaults and so no arguments other than input/output features need to be passed.
@@ -57,14 +59,14 @@ def main():
     policy.to(device)
 
     # We can then instantiate the dataset.
-    dataset = LeRobotDataset("yqiu777/aloha_mobile_left_dom", local_files_only=True)
+    dataset = LeRobotDataset("yqiu777/aloha_mobile_right_single_rigid")
 
     # Then we create our optimizer and dataloader for offline training.
     optimizer = torch.optim.Adam(policy.parameters(), lr=5e-5)
     dataloader = torch.utils.data.DataLoader(
         dataset,
         num_workers=4,
-        batch_size=32,
+        batch_size=8,
         shuffle=True,
         pin_memory=device.type != "cpu",
         drop_last=True,
