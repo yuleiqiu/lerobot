@@ -182,7 +182,7 @@ def train(cfg: TrainPipelineConfig):
         sampler = None
 
     train_dataloader = torch.utils.data.DataLoader(
-        dataset,
+        train_dataset,
         num_workers=cfg.num_workers,
         batch_size=cfg.batch_size,
         shuffle=shuffle,
@@ -195,8 +195,10 @@ def train(cfg: TrainPipelineConfig):
     # Create validation dataloader
     val_dataloader = torch.utils.data.DataLoader(
         val_dataset,
+        num_workers=cfg.num_workers,
         batch_size=cfg.batch_size,
-        shuffle=False,
+        shuffle=shuffle,
+        sampler=sampler,
         pin_memory=device.type != "cpu",
         drop_last=False,
 )

@@ -178,6 +178,11 @@ class ImageTransformsConfig:
     random_order: bool = False
     tfs: dict[str, ImageTransformConfig] = field(
         default_factory=lambda: {
+            "rotate": ImageTransformConfig(
+                weight=1.0,
+                type="RandomRotation",
+                kwargs={"degrees": (-0.5, 0.5), "expand": False}
+            ),
             "brightness": ImageTransformConfig(
                 weight=1.0,
                 type="ColorJitter",
@@ -210,6 +215,8 @@ class ImageTransformsConfig:
 def make_transform_from_config(cfg: ImageTransformConfig):
     if cfg.type == "Identity":
         return v2.Identity(**cfg.kwargs)
+    elif cfg.type == "RandomRotation":
+        return v2.RandomRotation(**cfg.kwargs)
     elif cfg.type == "ColorJitter":
         return v2.ColorJitter(**cfg.kwargs)
     elif cfg.type == "SharpnessJitter":

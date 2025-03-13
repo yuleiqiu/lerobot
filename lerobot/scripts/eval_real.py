@@ -314,8 +314,8 @@ def eval_policy(
 
 
 @parser.wrap()
-# def eval(cfg: EvalPipelineConfig):
-def eval(cfg: TrainPipelineConfig):
+def eval(cfg: EvalPipelineConfig):
+# def eval(cfg: TrainPipelineConfig):
     logging.info(pformat(asdict(cfg)))
 
     # Check device is available
@@ -346,14 +346,15 @@ def eval(cfg: TrainPipelineConfig):
     except InterbotixException:
         pass
 
-    logging.info("Creating dataset")
-    dataset = make_dataset(cfg)
+    # logging.info("Creating dataset")
+    # dataset = make_dataset(cfg)
 
+    ds_meta = LeRobotDatasetMetadata(cfg.dataset.repo_id, local_files_only=cfg.dataset.local_files_only)
     logging.info("Making policy.")
     policy = make_policy(
         cfg=cfg.policy,
         device=device,
-        ds_meta=dataset.meta,
+        ds_meta=ds_meta,
     )
     policy.eval()
 

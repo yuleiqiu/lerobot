@@ -74,11 +74,12 @@ def preprocess_observation_from_real_aloha(observations: dict[str, np.ndarray]) 
     Returns:
         Dictionary of observation with keys renamed to LeRobot format and values as tensors.
         Format:
+        return_observations = 
             {
                 "observation.images.cam_high": ...,
                 "observation.images.cam_left_wrist": ...,
                 "observation.images.cam_right_wrist": ...,
-                "observation.state": ...
+                "observation.state": ...,
             }
     """
     # map to expected inputs for the policy
