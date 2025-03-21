@@ -130,6 +130,17 @@ class DiffusionPolicy(PreTrainedPolicy):
         # Note: It's important that this happens after stacking the images into a single key.
         self._queues = populate_queues(self._queues, batch)
 
+        ## TODO: add temporal ensembling for diffusion policy
+        # # If we are doing temporal ensembling, do online updates where we keep track of the number of actions
+        # # we are ensembling over.
+        # if self.config.temporal_ensemble_coeff is not None:
+        #     # stack n latest observations from the queue
+        #     batch = {k: torch.stack(list(self._queues[k]), dim=1) for k in batch if k in self._queues}
+        #     actions = self.diffusion.generate_actions(batch)
+        #     actions = self.unnormalize_outputs({"action": actions})["action"]
+        #     action = self.temporal_ensembler.update(actions)
+        #     return action
+
         if len(self._queues["action"]) == 0:
             # stack n latest observations from the queue
             batch = {k: torch.stack(list(self._queues[k]), dim=1) for k in batch if k in self._queues}
